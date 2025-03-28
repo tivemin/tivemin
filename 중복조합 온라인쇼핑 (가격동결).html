@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중복조합 학습 - 온라인 쇼핑몰 시뮬레이션</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    header {
+      background-color: #4a148c;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .instruction-box {
+      background-color: #e1bee7;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .products-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .product-card {
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+    .product-image {
+      width: 100%;
+      height: 150px;
+      object-fit: contain;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .product-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .product-price {
+      color: #6a1b9a;
+      margin-bottom: 10px;
+    }
+    .product-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .quantity-control {
+      display: flex;
+      align-items: center;
+    }
+    .quantity-btn {
+      width: 30px;
+      height: 30px;
+      background-color: #9c27b0;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .quantity-input {
+      width: 40px;
+      height: 30px;
+      text-align: center;
+      margin: 0 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .cart-container {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .total-row {
+      font-weight: bold;
+      background-color: #e1bee7;
+    }
+    .budget-container {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .budget-bar {
+      flex-grow: 1;
+      margin: 0 20px;
+      height: 20px;
+      background-color: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .budget-fill {
+      height: 100%;
+      background-color: #8e24aa;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .combinations-log {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .combination-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .combination-item:last-child {
+      border-bottom: none;
+    }
+    .btn {
+      background-color: #6a1b9a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #4a148c;
+    }
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .formula-container {
+      background-color: #e8eaf6;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .formula {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+    .tab-container {
+      margin-top: 20px;
+    }
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .tab-btn {
+      background-color: #9575cd;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px 5px 0 0;
+      margin-right: 5px;
+    }
+    .tab-btn.active {
+      background-color: #6a1b9a;
+    }
+    .tab-content {
+      display: none;
+      background-color: white;
+      padding: 20px;
+      border-radius: 0 10px 10px 10px;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted black;
+      cursor: help;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>중복조합 학습 - 온라인 쇼핑몰 시뮬레이션</h1>
+    <p>이 활동은 중복조합 개념을 실생활에 적용하는 시뮬레이션입니다.</p>
+  </header>
+
+  <div class="container">
+    <div class="instruction-box">
+      <h2>활동 안내</h2>
+      <p>여러분은 100,000원의 예산을 가지고 아래 상품들을 구매해야 합니다. 각 상품은 여러 개 구매할 수 있습니다.</p>
+      <p>목표: <strong>정확히 100,000원</strong>을 사용하여 다양한 구매 조합을 찾아보세요!</p>
+      <p>모든 상품은 <strong>5,000원</strong>으로 가격이 동일합니다. 이 문제는 중복조합을 이용해 해결할 수 있습니다.</p>
+    </div>
+
+    <div class="budget-container">
+      <span>예산: <strong>100,000</strong>원</span>
+      <div class="budget-bar">
+        <div class="budget-fill" id="budget-fill"></div>
+      </div>
+      <span>현재 사용: <strong id="current-total">0</strong>원</span>
+    </div>
+
+    <div class="products-container" id="products">
+      <!-- 제품들이 자바스크립트로 추가될 예정입니다 -->
+    </div>
+
+    <div class="cart-container">
+      <h2>구매 목록</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>상품명</th>
+            <th>가격</th>
+            <th>수량</th>
+            <th>합계</th>
+          </tr>
+        </thead>
+        <tbody id="cart-items">
+          <!-- 카트 아이템들이 자바스크립트로 추가될 예정입니다 -->
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3">총계</td>
+            <td id="cart-total">0원</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div style="margin-top: 20px; text-align: right;">
+        <button class="btn" id="save-btn" disabled>조합 저장하기</button>
+        <button class="btn" id="reset-btn">초기화</button>
+      </div>
+    </div>
+
+    <div class="tab-container">
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="combinations">구매 조합 기록</button>
+        <button class="tab-btn" data-tab="theory">중복조합 이론</button>
+        <button class="tab-btn" data-tab="challenge">도전 과제</button>
+      </div>
+
+      <div class="tab-content active" id="combinations-tab">
+        <h2>저장된 구매 조합</h2>
+        <div class="combinations-log" id="combinations-log">
+          <p>아직 저장된 구매 조합이 없습니다.</p>
+        </div>
+      </div>
+
+      <div class="tab-content" id="theory-tab">
+        <h2>중복조합 이론</h2>
+        <p>중복조합(Combination with repetition)은 서로 다른 n개에서 중복을 허용하여 r개를 선택하는 경우의 수입니다.</p>
+        <p>이를 기호로 <span class="tooltip">H(n,r)<span class="tooltiptext">n개에서 중복을 허용하여 r개를 선택하는 경우의 수</span></span>로 표기합니다.</p>
+
+        <div class="formula-container">
+          <p>중복조합의 공식:</p>
+          <div class="formula">
+            H(n,r) = C(n+r-1,r) = <sup>(n+r-1)!</sup>/<sub>r!(n-1)!</sub>
+          </div>
+          <p>본 쇼핑몰 시뮬레이션에서는 6종류의 상품을 각각 5,000원으로 동일하게 선택할 수 있기 때문에, 20개의 상품을 구매하는 중복조합 문제가 됩니다.</p>
+          <p>이 문제는 H(6,20) = C(25,20) = C(25,5)로 표현할 수 있습니다.</p>
+        </div>
+
+        <h3>파스칼의 삼각형과의 관계</h3>
+        <p>중복조합 H(n,r)은 파스칼의 삼각형에서 조합 C(n+r-1,r)의 위치에서 찾을 수 있습니다.</p>
+
+        <h3>실생활 예시</h3>
+        <ul>
+          <li>서로 다른 종류의 음료수를 여러 개 구매하는 경우</li>
+          <li>여러 과목에서 총 학점 수를 채우는 경우</li>
+          <li>여러 종류의 동전으로 특정 금액을 만드는 경우</li>
+        </ul>
+      </div>
+
+      <div class="tab-content" id="challenge-tab">
+        <h2>도전 과제</h2>
+        <ol>
+          <li>
+            <strong>제약조건 추가:</strong> 모든 종류의 상품을 최소 1개 이상 구매해야 한다면 가능한 경우의 수는?
+            <p>힌트: 각 상품을 1개씩 먼저 구매한 후, 남은 금액으로 중복조합을 계산합니다.</p>
+            <p>정답: H(6,14) = C(19,14) = C(19,5) = 11,628 가지</p>
+          </li>
+          <li>
+            <strong>최대 개수 제한:</strong> 볼펜은 최대 5개까지만 구매할 수 있다면 가능한 경우의 수는?
+            <p>힌트: 전체 경우의 수에서 볼펜을 6개 이상 구매하는 경우의 수를 뺍니다.</p>
+          </li>
+          <li>
+            <strong>수학적 도전:</strong> 중복조합 H(n,r)의 값이 파스칼의 삼각형의 어느 위치에 있는지 찾아보세요.
+          </li>
+          <li>
+            <strong>창의적 문제 만들기:</strong> 중복조합을 활용한 나만의 실생활 문제를 만들어보세요.
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 제품 데이터 - 모두 5000원으로 통일
+    const products = [
+      { id: 1, name: '볼펜', price: 5000, image: '/api/placeholder/120/120', icon: '🖊️', description: '필기용 볼펜' },
+      { id: 2, name: '노트', price: 5000, image: '/api/placeholder/120/120', icon: '📓',description: '공부용 노트' },
+      { id: 3, name: '연필꽂이', price: 5000, image: '/api/placeholder/120/120', icon: '🧰',description: '데스크용 연필꽂이' },
+      { id: 4, name: '형광펜', price: 5000, image: '/api/placeholder/120/120', icon: '🖍️', description: '형광색 마커' },
+      { id: 5, name: '마스킹 테이프', price: 5000, image: '/api/placeholder/120/120', icon: '📎', description: '다양한 디자인의 테이프' },
+      { id: 6, name: '스티커', price: 5000, image: '/api/placeholder/120/120', icon: '⭐', description: '귀여운 스티커 세트' }
+    ];
+
+    const cart = {};
+    const savedCombinations = [];
+    const BUDGET = 100000;
+
+    // DOM 요소들
+    const productsContainer = document.getElementById('products');
+    const cartItems = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+    const currentTotal = document.getElementById('current-total');
+    const budgetFill = document.getElementById('budget-fill');
+    const saveBtn = document.getElementById('save-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const combinationsLog = document.getElementById('combinations-log');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // 제품 렌더링
+    function renderProducts() {
+      productsContainer.innerHTML = '';
+      products.forEach(product => {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.innerHTML = `
+          <div class="product-image">
+            <div style="font-size: 50px; text-align: center; line-height: 120px;">${product.icon}</div>
+          </div>
+          <div class="product-title">${product.name}</div>
+          <div class="product-price">${product.price.toLocaleString()}원</div>
+          <p>${product.description}</p>
+          <div class="product-controls">
+            <div class="quantity-control">
+              <button class="quantity-btn" onclick="decreaseQuantity(${product.id})">-</button>
+              <input type="number" class="quantity-input" id="qty-${product.id}" value="${cart[product.id] || 0}" min="0" onchange="updateQuantity(${product.id}, this.value)">
+              <button class="quantity-btn" onclick="increaseQuantity(${product.id})">+</button>
+            </div>
+          </div>
+        `;
+        productsContainer.appendChild(productCard);
+      });
+    }
+
+    // 카트 업데이트
+    function updateCart() {
+      let total = 0;
+      cartItems.innerHTML = '';
+
+      for (const productId in cart) {
+        if (cart[productId] > 0) {
+          const product = products.find(p => p.id === parseInt(productId));
+          const itemTotal = product.price * cart[productId];
+          total += itemTotal;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.price.toLocaleString()}원</td>
+            <td>${cart[productId]}</td>
+            <td>${itemTotal.toLocaleString()}원</td>
+          `;
+          cartItems.appendChild(row);
+        }
+      }
+
+      cartTotal.textContent = `${total.toLocaleString()}원`;
+      currentTotal.textContent = total.toLocaleString();
+
+      // 예산 바 업데이트
+      const percentage = (total / BUDGET) * 100;
+      budgetFill.style.width = `${Math.min(percentage, 100)}%`;
+      budgetFill.style.backgroundColor = percentage === 100 ? '#4caf50' : percentage > 100 ? '#f44336' : '#8e24aa';
+
+      // 저장 버튼 활성화/비활성화
+      saveBtn.disabled = total !== BUDGET;
+    }
+
+    // 수량 증가
+    function increaseQuantity(productId) {
+      cart[productId] = (cart[productId] || 0) + 1;
+      document.getElementById(`qty-${productId}`).value = cart[productId];
+      updateCart();
+    }
+
+    // 수량 감소
+    function decreaseQuantity(productId) {
+      if (cart[productId] && cart[productId] > 0) {
+        cart[productId]--;
+        document.getElementById(`qty-${productId}`).value = cart[productId];
+        updateCart();
+      }
+    }
+
+    // 수량 직접 업데이트
+    function updateQuantity(productId, value) {
+      const qty = parseInt(value);
+      cart[productId] = isNaN(qty) || qty < 0 ? 0 : qty;
+      document.getElementById(`qty-${productId}`).value = cart[productId];
+      updateCart();
+    }
+
+    // 조합 저장
+    function saveCombination() {
+      const combination = { ...cart };
+      savedCombinations.push(combination);
+      renderCombinations();
+      alert('구매 조합이 저장되었습니다!');
+    }
+
+    // 카트 초기화
+    function resetCart() {
+      for (const productId in cart) {
+        cart[productId] = 0;
+      }
+      renderProducts();
+      updateCart();
+    }
+
+    // 저장된 조합 렌더링
+    function renderCombinations() {
+      if (savedCombinations.length === 0) {
+        combinationsLog.innerHTML = '<p>아직 저장된 구매 조합이 없습니다.</p>';
+        return;
+      }
+
+      combinationsLog.innerHTML = '';
+      savedCombinations.forEach((combination, index) => {
+        const combinationItem = document.createElement('div');
+        combinationItem.className = 'combination-item';
+
+        let combinationHtml = `<strong>조합 ${index + 1}:</strong><ul>`;
+        let total = 0;
+
+        for (const productId in combination) {
+          if (combination[productId] > 0) {
+            const product = products.find(p => p.id === parseInt(productId));
+            const itemTotal = product.price * combination[productId];
+            total += itemTotal;
+
+            combinationHtml += `<li>${product.name}: ${combination[productId]}개 (${itemTotal.toLocaleString()}원)</li>`;
+          }
+        }
+
+        combinationHtml += `</ul><p>총액: ${total.toLocaleString()}원</p>`;
+        combinationItem.innerHTML = combinationHtml;
+        combinationsLog.appendChild(combinationItem);
+      });
+    }
+
+    // 탭 전환
+    function switchTab(tabId) {
+      tabButtons.forEach(button => {
+        button.classList.remove('active');
+      });
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+      });
+
+      document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+    }
+
+    // 이벤트 리스너
+    saveBtn.addEventListener('click', saveCombination);
+    resetBtn.addEventListener('click', resetCart);
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        switchTab(button.getAttribute('data-tab'));
+      });
+    });
+
+    // 초기화
+    renderProducts();
+    updateCart();
+    renderCombinations();
+  </script>
+</body>
+</html>
